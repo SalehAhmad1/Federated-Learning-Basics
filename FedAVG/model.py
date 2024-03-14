@@ -13,6 +13,7 @@ class BaseModel(nn.Module):
             nn.Linear(32, 16),
             nn.ReLU(),
             nn.Linear(16, 4),
+            nn.Softmax()
         )
 
     def forward(self, x):
