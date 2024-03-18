@@ -17,7 +17,6 @@ if __name__ == "__main__":
     num_clients = 5
     num_epochs = 10
     lr = 0.01
-    shift = 10
 
     # Load the main dataset, and shuffle it so every split has mix labels
     DF, str2idx, idx2str  = load_get_dataset()
@@ -29,10 +28,10 @@ if __name__ == "__main__":
     num_labels = len(str2idx)
 
     # Create server model
-    server_model = ServerModel(num_features,num_labels,shift)
+    server_model = ServerModel(num_features,num_labels)
 
     # Create client models
-    client_models = [ClientModel(num_features,num_labels,shift) for _ in range(num_clients)]
+    client_models = [ClientModel(num_features,num_labels) for _ in range(num_clients)]
 
     # Split the data for clients
     train_data_splits = split_data(TrainDF, num_clients)
@@ -45,7 +44,7 @@ if __name__ == "__main__":
     save_model(server_model, filepath='./ServerModel.pth')
     
     #Load the Server Model
-    server_model_loaded = load_model(ServerModel, args=(num_features,num_labels,shift), filepath='./ServerModel.pth')
+    server_model_loaded = load_model(ServerModel, args=(num_features,num_labels), filepath='./ServerModel.pth')
 
     #Test the Server Model
     test_datasets = [CustomDataset(TestDF, target_col_name='target')]
