@@ -19,16 +19,20 @@ if __name__ == "__main__":
     lr = 0.01
     shift = 10
 
-    # Create server model
-    server_model = ServerModel(shift=shift)
-
-    # Create client models
-    client_models = [ClientModel(shift=shift) for _ in range(num_clients)]
-
     # Load the main dataset, and shuffle it so every split has mix labels
-    DF, str2idx, idx2str  = load_get_dataset(dataset_name='load_iris')
+    DF, str2idx, idx2str  = load_get_dataset()
     DF = randomize_dataset(DF)
     TrainDF, TestDF = split_dataframe_into_train_test(DF)
+
+    #Number of features, Number of Prediction Labels
+    num_features = len(DF.columns) - 1
+    num_labels = len(str2idx)
+
+    # Create server model
+    server_model = ServerModel(num_features,num_labels,shift)
+
+    # Create client models
+    client_models = [ClientModel(num_features,num_labels,shift) for _ in range(num_clients)]
 
     # Split the data for clients
     train_data_splits = split_data(TrainDF, num_clients)
@@ -41,7 +45,7 @@ if __name__ == "__main__":
     save_model(server_model, filepath='./ServerModel.pth')
     
     #Load the Server Model
-    server_model_loaded = load_model(ServerModel, filepath='./ServerModel.pth')
+    server_model_loaded = load_model(ServerModel, args=(num_features,num_labels,shift), filepath='./ServerModel.pth')
 
     #Test the Server Model
     test_datasets = [CustomDataset(TestDF, target_col_name='target')]

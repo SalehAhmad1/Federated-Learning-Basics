@@ -14,8 +14,8 @@ def save_model(model, filepath='./ServerModel.pth'):
     torch.save(model.state_dict(), filepath)
     print(f"Model saved to '{filepath}'")
 
-def load_model(model_class, filepath='./ServerModel.pth'):
-    model = model_class()
+def load_model(model_class, args,filepath='./ServerModel.pth'):
+    model = model_class(*args)
     model.load_state_dict(torch.load(filepath))
     model.eval()
     print(f"Model loaded from '{filepath}'")
