@@ -15,6 +15,7 @@ def convert_categorical_to_numerical(df, column_name, str2idx):
     df_copy[column_name] = df_copy[column_name].map(str2idx)
     return df_copy
 
+
 def get_dicts(df, column_name):
     unique_values = df[column_name].unique()
     str2idx = {value: idx for idx, value in enumerate(unique_values)}
@@ -53,3 +54,15 @@ def split_dataframe_into_train_test(DF):
     train = train.reset_index(drop=True)
     test = test.reset_index(drop=True)
     return train, test
+    
+def split_data(data, n):
+    split_size = len(data) // n
+    splits = [data[i*split_size:(i+1)*split_size] for i in range(n)]
+    return splits
+
+def custom_dataset_from_splits(splits):
+    datasets = []
+    for split_data in splits:
+        dataset = CustomDataset(split_data)
+        datasets.append(dataset)
+    return datasets(splits)

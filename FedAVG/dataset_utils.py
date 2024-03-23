@@ -1,8 +1,7 @@
-import torch
-
-from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler
 
+import pickle
 import pandas as pd
 import numpy as np
 import os
@@ -14,7 +13,6 @@ def convert_categorical_to_numerical(df, column_name, str2idx):
     df_copy = df.copy()
     df_copy[column_name] = df_copy[column_name].map(str2idx)
     return df_copy
-
 
 def get_dicts(df, column_name):
     unique_values = df[column_name].unique()
@@ -50,7 +48,7 @@ def randomize_dataset(DF):
     return shuffled_df
 
 def split_dataframe_into_train_test(DF):
-    train, test = train_test_split(DF, test_size=0.3, random_state=51)
+    train, test = train_test_split(DF, test_size=0.3, random_state=51, stratify=DF['target'])
     train = train.reset_index(drop=True)
     test = test.reset_index(drop=True)
     return train, test
@@ -58,6 +56,7 @@ def split_dataframe_into_train_test(DF):
 def split_data(data, n):
     split_size = len(data) // n
     splits = [data[i*split_size:(i+1)*split_size] for i in range(n)]
+    splits = [s.reset_index(drop=True) for s in splits]
     return splits
 
 def custom_dataset_from_splits(splits):
@@ -66,3 +65,34 @@ def custom_dataset_from_splits(splits):
         dataset = CustomDataset(split_data)
         datasets.append(dataset)
     return datasets(splits)
+
+def preprocess_df(DF, scaler=None, scaler_type='MinMaxScaler'):
+    if 'target' in DF.columns:
+        target = DF['target']
+        DF = DF.drop('target', axis=1)
+    DF = DF.dropna()
+    if scaler_type == 'MinMaxScaler' and scaler is None:
+        scaler = MinMaxScaler()
+    elif scaler_type == 'StandardScaler' and scaler is None:
+        scaler = StandardScaler()
+    elif scaler_type == 'RobustScaler' and scaler is None:
+        scaler = RobustScaler()
+    elif scaler_type == 'MaxAbsScaler' and scaler is None:
+        scaler = MaxAbsScaler()
+    elif scaler is not None:
+        scaler = scaler
+    else:
+        raise Exception("Invalid scaler type")
+    columns = DF.columns
+    DF = scaler.fit_transform(DF)
+    DF = pd.DataFrame(DF, columns=columns)
+    if 'target' not in DF.columns:
+        DF = pd.concat([DF, target], axis=1)
+    return DF, scaler
+
+def save_preprocessing_scaler(scaler, filepath):
+    folder_name = os.path.dirname(filepath)
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    with open(filepath, 'wb') as f:
+        pickle.dump(scaler, f)

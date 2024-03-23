@@ -35,8 +35,12 @@ if __name__ == "__main__":
 
     # Split the data for clients
     train_data_splits = split_data(TrainDF, num_clients)
-    train_datasets = [CustomDataset(split, target_col_name='target') for split in train_data_splits]
-    
+    tuples = [preprocess_df(DF=split, scaler_type='MinMaxScaler') for split in train_data_splits]
+    preprocessed_train_data_splits, Scalers = zip(*tuples)
+    save_preprocessing_scaler(scaler=Scalers[0], filepath='./preprocessing_pickles/scaler.pkl')
+    train_datasets = [CustomDataset(split, target_col_name='target') for split in preprocessed_train_data_splits]
+    preprocessed_test_data, scaler = preprocess_df(DF=TestDF, scaler=Scalers[0], scaler_type='MinMaxScaler')
+
     # Train the models
     server_model = train(server_model, client_models, train_datasets, num_epochs=num_epochs, lr=lr)
     
@@ -47,5 +51,5 @@ if __name__ == "__main__":
     server_model_loaded = load_model(ServerModel, args=(num_features, num_labels), filepath='./ServerModel.pth')
 
     #Test the Server Model
-    test_datasets = [CustomDataset(TestDF, target_col_name='target')]
+    test_datasets = [CustomDataset(preprocessed_test_data, target_col_name='target')]
     test(server_model_loaded, test_datasets)
