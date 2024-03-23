@@ -5,7 +5,7 @@
 - [x] FedAVG with homorphic encryption
 
 ## Results / Metric Values
-| Approach | Accuracy (%)| Precision (%)| Recall (%)| F1 (%)|
+| Approach | Accuracy (%) | Precision (%) | Recall (%) | F1 (%) |
 | --- | --- |
 | Basic ML | 61 | 47 | 52 | 49 |
 | FedAVG | 32 | 18 | 26 | 20 |
