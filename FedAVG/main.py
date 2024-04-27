@@ -45,11 +45,12 @@ if __name__ == "__main__":
     server_model = train(server_model, client_models, train_datasets, num_epochs=num_epochs, lr=lr)
     
     #Save the Server Model  
-    save_model(server_model, filepath='./ServerModel.pth')
+    save_model(server_model, filepath='./models/ServerModel.pth')
     
     #Load the Server Model
-    server_model_loaded = load_model(ServerModel, args=(num_features, num_labels), filepath='./ServerModel.pth')
+    server_model_loaded = load_model(ServerModel, args=(num_features, num_labels), filepath='./models/ServerModel.pth')
 
     #Test the Server Model
-    test_datasets = [CustomDataset(preprocessed_test_data, target_col_name='target')]
-    test(server_model_loaded, test_datasets)
+    print(preprocessed_test_data)
+    test_dataset = CustomDataset(preprocessed_test_data, target_col_name='target')
+    test(server_model_loaded, test_dataset)
