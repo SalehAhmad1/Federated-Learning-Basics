@@ -51,6 +51,5 @@ if __name__ == "__main__":
     server_model_loaded = load_model(ServerModel, args=(num_features, num_labels), filepath='./models/ServerModel.pth')
 
     #Test the Server Model
-    print(preprocessed_test_data)
     test_dataset = CustomDataset(preprocessed_test_data, target_col_name='target')
     test(server_model_loaded, test_dataset)
