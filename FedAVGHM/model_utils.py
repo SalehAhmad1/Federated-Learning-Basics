@@ -92,15 +92,11 @@ def train(server_model, client_models, datasets, num_epochs=10, lr=0.01):
         
         # Encrypting the client model weights before aggregating and averaging at the server node
         for idx,c_model in enumerate(client_models):
-            write_model_params_to_txt(c_model, f'./param_files/client_model_{idx}_epoch_{epoch}.txt', f'Client Model Params before encryption: {idx}\n')
-            c_model.encrypt()
-            write_model_params_to_txt(c_model, f'./param_files/client_model_{idx}_epoch_{epoch}.txt', f'Client Model Params after encryption: {idx}\n')
+            c_model.encrypt(model_name=idx)
         
         # Sharing client models and update server model
-        server_model.load_state_dict(average_weights(client_models))
+        # server_model.load_state_dict(average_weights(client_models))
 
         # Decrypting the server model weights after aggregating and averaging at the server node
-        write_model_params_to_txt(server_model, f'./param_files/server_model_epoch_{epoch}.txt', f'Server Model Params before decryption:\n')
         server_model.decrypt()
-        write_model_params_to_txt(server_model, f'./param_files/server_model_epoch_{epoch}.txt', f'Server Model Params after decryption:\n')
     return server_model
