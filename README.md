@@ -9,7 +9,7 @@
 | --- | --- | --- | --- | --- |
 | Basic ML | 61 | 47 | 52 | 49 |
 | FedAVG without any encryption | 73 | 59 | 61 | 59 |
-| FedAVG with homorphic encryption |  |  |  |  |
+| FedAVG with homorphic encryption | 78 |  58| 60 | 59 |
 
 ## Report
 https://docs.google.com/document/d/1GwddvdX9Woo5kiOZbeqKF-hpyr_FnIIQVLP893WtFGs/edit?usp=sharing
