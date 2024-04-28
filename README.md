@@ -10,6 +10,3 @@
 | Basic ML | 61 | 47 | 52 | 49 |
 | Model Averaging without any encryption | 73 | 59 | 61 | 59 |
 | FedAVG with RSA encryption | 78 |  58| 60 | 59 |
-
-## Report
-https://docs.google.com/document/d/1GwddvdX9Woo5kiOZbeqKF-hpyr_FnIIQVLP893WtFGs/edit?usp=sharing
