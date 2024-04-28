@@ -14,29 +14,37 @@ from cryptography.hazmat.primitives import padding as sym_padding
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-def average_weights(models):        
+def average_weights(models):    
+    '''Function to average the weights of the models if all models are given'''    
     avg_state_dict = {}
     for key in models[0].state_dict().keys():
         avg_state_dict[key] = torch.stack([model.state_dict()[key] for model in models], 0).mean(0)
     return avg_state_dict
 
 def encrypt(data, public_key):
+    '''
+    Function to encrypt the weights of the model.
+    Using AES encryption ensures efficient and fast encryption of large data (model weights),
+    while RSA encryption securely shares the AES key, providing an additional layer of security.
+    '''
     # Encrypt the model weights
     encrypted_weights = {}
-    for k, v in data.items():
-        v_bytes = pickle.dumps(v)
+    for key, value in data.items():
+        # Serialize the value
+        serialized_value = pickle.dumps(value)
+        
         # Generate a random AES key
         aes_key = os.urandom(32)
 
-        # Encrypt the message using AES
+        # Encrypt the serialized value using AES
         cipher = Cipher(algorithms.AES(aes_key), modes.ECB(), backend=default_backend())
         encryptor = cipher.encryptor()
         padder = sym_padding.PKCS7(algorithms.AES.block_size).padder()
-        padded_message = padder.update(v_bytes) + padder.finalize()
+        padded_message = padder.update(serialized_value) + padder.finalize()
         ciphertext_aes = encryptor.update(padded_message) + encryptor.finalize()
 
         # Encrypt the AES key using RSA
-        ciphertext_rsa = public_key.encrypt(
+        encrypted_aes_key = public_key.encrypt(
             aes_key,
             padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -46,24 +54,30 @@ def encrypt(data, public_key):
         )
 
         # Store encrypted weights
-        encrypted_weights[k] = {
+        encrypted_weights[key] = {
             "ciphertext_aes": ciphertext_aes,
-            "ciphertext_rsa": ciphertext_rsa,
+            "ciphertext_rsa": encrypted_aes_key,
         }
 
+    # Serialize the encrypted weights
     serialized_weights = pickle.dumps(encrypted_weights)
-   # Convert bytes to Base64 string
+
+    # Convert bytes to Base64 string and return
     return base64.b64encode(serialized_weights).decode('utf-8')
 
 def decrypt(base64_weights, private_key_rsa):
+    '''
+    Function to decrypt the weights of the model.
+    First decrypts the AES key using RSA, then decrypts the model weights using AES.
+    '''
     # Convert Base64 string to bytes and deserialize
     serialized_weights = base64.b64decode(base64_weights)
     encrypted_weights = pickle.loads(serialized_weights)
 
     # Decrypt the AES key using RSA
     decrypted_weights = {}
-    for k, v in encrypted_weights.items():
-        ciphertext_rsa = v['ciphertext_rsa']
+    for key, value in encrypted_weights.items():
+        ciphertext_rsa = value['ciphertext_rsa']
         aes_key = private_key_rsa.decrypt(
             ciphertext_rsa,
             padding.OAEP(
@@ -74,7 +88,7 @@ def decrypt(base64_weights, private_key_rsa):
         )
 
         # Decrypt the message using AES
-        ciphertext_aes = v['ciphertext_aes']
+        ciphertext_aes = value['ciphertext_aes']
         cipher = Cipher(algorithms.AES(aes_key), modes.ECB(), backend=default_backend())
         decryptor = cipher.decryptor()
         unpadder = sym_padding.PKCS7(algorithms.AES.block_size).unpadder()
@@ -83,15 +97,17 @@ def decrypt(base64_weights, private_key_rsa):
 
         # Deserialize the decrypted message
         original_message = pickle.loads(decrypted_message)
-        decrypted_weights[k] = original_message
+        decrypted_weights[key] = original_message
 
     return decrypted_weights
 
 def save_model(model, filepath='./ServerModel.pth'):
+    '''Save the model to a file'''
     torch.save(model.state_dict(), filepath)
     print(f"Model saved to '{filepath}'")
 
 def load_model(model_class, args, filepath='./ServerModel.pth'):
+    '''Load the model from a file'''
     model = model_class(*args)
     model.load_state_dict(torch.load(filepath))
     model.eval()
@@ -99,6 +115,7 @@ def load_model(model_class, args, filepath='./ServerModel.pth'):
     return model
 
 def infer(model, inputs, idx2str):
+    '''Perform inference on the model and convert the output to a string'''
     # Convert inputs to torch.Tensor if not already
     if not isinstance(inputs, torch.Tensor):
         inputs = torch.tensor(inputs, dtype=torch.float32)
@@ -138,14 +155,11 @@ def test(model, dataset):
     print(f"Recall: {recall_score(Actual_Label, Predicted_Label, average=f'macro', zero_division=0) * 100}")
     print(f"F1-score: {f1_score(Actual_Label, Predicted_Label, average=f'macro', zero_division=0) * 100}")
 
-def write_model_params_to_txt(model, file_path, prepend_sentence):
-    with open(file_path, 'a') as f:
-        f.write(prepend_sentence + '\n')
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                f.write(f"{name}: {param.data}\n")
 
 def train(client_model, dataset, num_epochs=10, lr=0.01):
+    '''
+    Function to train the model given a dataset and a model, and it's hyperparameters.
+    '''
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(client_model.parameters(), lr=lr)
 

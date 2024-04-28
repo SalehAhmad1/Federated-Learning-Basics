@@ -22,6 +22,9 @@ if __name__ == "__main__":
     DF = randomize_dataset(DF)
     TrainDF, TestDF = split_dataframe_into_train_test(DF)
 
+    print(TrainDF.target.value_counts())
+    print(TestDF.target.value_counts())
+
     #Number of features, Number of Prediction Labels
     num_features = len(DF.columns) - 1
     num_labels = len(str2idx)
