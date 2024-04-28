@@ -2,7 +2,7 @@
 ## To Dos
 - [x] Basic ML
 - [x] FedAVG
-- [x] FedAVG with homorphic encryption
+- [x] FedAVG with RSA encryption
 
 ## Results / Metric Values
 | Approach | Accuracy (%) | Precision (%) | Recall (%) | F1 (%) |
